@@ -1,0 +1,38 @@
+resources:
+  jobs:
+    Execução_atividade_Arquitetura_Medalhão_run:
+      name: Execução atividade Arquitetura Medalhão run
+      description: Pipeline completo da Arquitetura Medalhão, passando pela ingestão
+        na bronze, transformação na silver até a modelagem gold/curated.
+      schedule:
+        quartz_cron_expression: 48 0 13 * * ?
+        timezone_id: America/Sao_Paulo
+        pause_status: UNPAUSED
+      tasks:
+        - task_key: 01_Extracao_Bronze
+          notebook_task:
+            notebook_path: /Workspace/Users/gabriel.fo.br@gmail.com/RocketLabDados-2025.2-GabrielDeFreitas/Atividade02
+              - Medalhão/Atividade2_land_to_bronze
+            source: WORKSPACE
+          environment_key: 01_Extracao_Bronze_environment
+        - task_key: 02_Conversao_Silver
+          depends_on:
+            - task_key: 01_Extracao_Bronze
+          notebook_task:
+            notebook_path: /Workspace/Users/gabriel.fo.br@gmail.com/RocketLabDados-2025.2-GabrielDeFreitas/Atividade02
+              - Medalhão/Atividade2_bronze_to_silver
+            source: WORKSPACE
+        - task_key: 03_Transformacao_Gold
+          depends_on:
+            - task_key: 02_Conversao_Silver
+          notebook_task:
+            notebook_path: /Workspace/Users/gabriel.fo.br@gmail.com/RocketLabDados-2025.2-GabrielDeFreitas/Atividade03
+              - Gold Layer e criação de Views/Atividade3_silver_to_gold_curated
+            source: WORKSPACE
+      queue:
+        enabled: true
+      environments:
+        - environment_key: 01_Extracao_Bronze_environment
+          spec:
+            environment_version: "4"
+      performance_target: PERFORMANCE_OPTIMIZED
